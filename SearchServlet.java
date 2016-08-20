@@ -39,9 +39,39 @@ public class SearchServlet extends HttpServlet {
 		System.out.print("PRINT DI CONTROLLO: Sono in SearchServlet in doGet\n");
     	
     	String search=request.getParameter("search");
+    	String mode=request.getParameter("mode");
+    	System.out.println("Modalità selezionata: "+mode);
     	String[][] result=null;
     	try {
-    		result=lucCon.search(search);
+    		if (mode.equals("cap"))
+    		{
+    			result=lucCon.searchCaptions(search);
+    		}
+    		else if (mode.equals("cat"))
+    		{
+    			result=lucCon.searchCategory(search);
+    		}
+    		else if (mode.equals("both"))
+    		{
+    			result=lucCon.searchBothCatCap(search);
+    		}
+    		else if (mode.equals("capplus"))
+    		{
+    			result=lucCon.searchCaptionsPlus(search);
+    		}
+    		else if (mode.equals("catplus"))
+    		{
+    			result=lucCon.searchCategoryPlus(search);
+    		}
+    		else if (mode.equals("bothplus"))
+    		{
+    			result=lucCon.searchBothCatCapPlus(search);
+    		}
+    		else
+    		{
+    			System.out.print("ERRORE: La modalità selezionata: "+mode+" non è riconosciuta");
+    		}
+    		
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
