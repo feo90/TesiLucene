@@ -20,17 +20,25 @@
 		<input name="Search" type="submit" id="start" value="start">
 	</p>	
 	
-	<!--VECCHIO METODO DIRETTO
-	 <p><img src="${pageContext.request.contextPath}/images/im.gif"/></p>	 -->
+	<!-- Menu a tendina -->
+	<p>
+	<select name="mode">
+    <option value="cap">Captions</option>
+    <option value="cat">Category</option>
+    <option value="both">Captions and Category</option>
+    <option value="capplus">Captions+</option>
+    <option value="catplus">Category+</option>
+    <option value="bothplus">Captions+ and Category+</option>
+  </select>
+	</p>
 	
-	<%
-	String[][] result = (String[][]) session.getAttribute("result");
+	<%String[][] result = (String[][]) session.getAttribute("result");
 	if (result!=null)
 	{
 		String[] resultID=result[0];
 		String[] resultSentence=result[1];
 		String[] resultImageID=result[2];
-		%>
+		String[] resultCategories=result[3];%>
 		<%="Found " + resultID.length + " hits." %>
 		
 		<%
@@ -38,7 +46,7 @@
 		for (i=0;i<resultID.length;i++)
 		{
 			//Questa è la stringa testuale
-			String line=(i+1)+") ID: "+resultID[i]+" \t Image ID: "+resultImageID[i]+"\t Caption "+resultSentence[i];
+			String line=(i+1)+") ID: "+resultID[i]+" \t Image ID: "+resultImageID[i]+"\t Caption: "+resultSentence[i]+"\t Categories: "+resultCategories[i];
 			
 			//Ricerco l'immagine associata
 			String imageId=resultImageID[i];
