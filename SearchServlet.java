@@ -11,6 +11,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 
+import control.GoldStandardControl;
 import lucene.LuceneController;
 
 /**
@@ -36,55 +37,82 @@ public class SearchServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
 	{
-		System.out.print("PRINT DI CONTROLLO: Sono in SearchServlet in doGet\n");
-    	
-    	String search=request.getParameter("search");
-    	String mode=request.getParameter("mode");
-    	System.out.println("Modalità selezionata: "+mode);
-    	String[][] result=null;
-    	try {
-    		if (mode.equals("cap"))
-    		{
-    			result=lucCon.searchCaptions(search);
-    		}
-    		else if (mode.equals("cat"))
-    		{
-    			result=lucCon.searchCategory(search);
-    		}
-    		else if (mode.equals("both"))
-    		{
-    			result=lucCon.searchBothCatCap(search);
-    		}
-    		else if (mode.equals("capplus"))
-    		{
-    			result=lucCon.searchCaptionsPlus(search);
-    		}
-    		else if (mode.equals("catplus"))
-    		{
-    			result=lucCon.searchCategoryPlus(search);
-    		}
-    		else if (mode.equals("bothplus"))
-    		{
-    			result=lucCon.searchBothCatCapPlus(search);
-    		}
-    		else
-    		{
-    			System.out.print("ERRORE: La modalità selezionata: "+mode+" non è riconosciuta");
-    		}
-    		
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	// Creo la sessione del client
-		HttpSession session = request.getSession();
-		session.setAttribute("result",result);
+		System.out.println("PRINT DI CONTROLLO: Sono in SearchServlet in doGet");
+		String search=request.getParameter("search");
 		
-		// Refresh della pagina
-		String PAGE = "Intro.jsp";
-		response.sendRedirect(PAGE);
-    	
+		if (request.getParameter("start_search") != null) 
+		{
+			String mode=request.getParameter("mode");
+	    	System.out.println("Modalità selezionata: "+mode);
+	    	String[][] result=null;
+	    	try {
+	    		if (mode.equals("cap"))
+	    		{
+	    			result=lucCon.searchCaptions(search);
+	    		}
+	    		else if (mode.equals("cat"))
+	    		{
+	    			result=lucCon.searchCategory(search);
+	    		}
+	    		else if (mode.equals("both"))
+	    		{
+	    			result=lucCon.searchBothCatCap(search);
+	    		}
+	    		else if (mode.equals("capplus"))
+	    		{
+	    			result=lucCon.searchCaptionsPlus(search);
+	    		}
+	    		else if (mode.equals("catplus"))
+	    		{
+	    			result=lucCon.searchCategoryPlus(search);
+	    		}
+	    		else if (mode.equals("bothplus"))
+	    		{
+	    			result=lucCon.searchBothCatCapPlus(search);
+	    		}
+	    		else
+	    		{
+	    			System.out.println("ERRORE: La modalità selezionata: "+mode+" non è riconosciuta");
+	    		}
+	    		
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	
+	    	// Creo la sessione del client
+			HttpSession session = request.getSession();
+			session.setAttribute("result",result);
+			session.setAttribute("query", search);
+
+			// Refresh della pagina
+			String PAGE = "Intro.jsp";
+			response.sendRedirect(PAGE);
+			return;
+		} 
+		else if (request.getParameter("showGS") != null) 
+		{
+			System.out.println("PRINT DI CONTROLLO: Mostro il GS");
+			String[] gold_standard=GoldStandardControl.findGoldStandard(search);
+		    
+		    // Creo la sessione del client
+		    HttpSession session = request.getSession();
+		    session.setAttribute("gs",gold_standard);
+		    session.setAttribute("query", search);
+		 
+		 	// Refresh della pagina
+		 	String PAGE = "ShowGoldStandard.jsp";
+		 	response.sendRedirect(PAGE);
+		 	return;
+		}
+		else
+		{
+			System.out.println("ERRORE: Bottone non riconosciuto!");
+			// Refresh della pagina
+		 	String PAGE = "Intro.jsp";
+		 	response.sendRedirect(PAGE);
+		 	return;
+		}    	
 	}
 
 	/**
