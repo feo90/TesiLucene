@@ -37,13 +37,13 @@ public class SingleImageServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
 	{
-		System.out.println("PRINT DI CONTROLLO: Sono in SingleImageServlet in doGet");
+		//System.out.println("PRINT DI CONTROLLO: Sono in SingleImageServlet in doGet");
 		HttpSession session = request.getSession();
 		
 		if (request.getParameter("edit") != null) //Verifico se è stata fatta la richiesta di editare il gs
 		{
 			String query=(String) session.getAttribute("query");
-			System.out.println("PRINT DI CONTROLLO: E' stato richiesto l'editing del gs della query: "+query);
+			//System.out.println("PRINT DI CONTROLLO: E' stato richiesto l'editing del gs della query: "+query);
 			String[] old_gs=GoldStandardControl.findGoldStandard(query);
 			boolean[] gs_value=new boolean[old_gs.length];
 			
@@ -56,7 +56,7 @@ public class SingleImageServlet extends HttpServlet {
 					String cb="cb"+i;
 					
 					String value=(String) request.getParameter(cb);
-					System.out.println("PRINT DI CONTROLLO: L'immagine in posizione "+num+" ha come valore "+value);
+					//System.out.println("PRINT DI CONTROLLO: L'immagine in posizione "+num+" ha come valore "+value);
 					
 					if (value.equals("relevant"))
 					{
@@ -88,7 +88,7 @@ public class SingleImageServlet extends HttpServlet {
 		else //Voglio vedere un'immagine nel dettaglio
 		{
 			String imID=request.getParameter("imagebt");
-			System.out.println("ImID= "+imID);
+			//System.out.println("ImID= "+imID);
 			String[][] single_result = null;
 			
 			try 

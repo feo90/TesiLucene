@@ -6,11 +6,12 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import entities.Constants;
+
 public abstract class ImDrawRect 
 {
-	private static String IMAGE_LOCATION="D:\\workspace_eclipse\\JSPLuceneExample\\WebContent\\images\\val2014\\";
-	
-	public static String[] COLOR={"FF0000","FF8000","FFFF000","00FF00","00FFFF","0000FF","FF00FF","660000","006600","FFFFFF"}; 
+	private static String IMAGE_LOCATION=Constants.getIMAGE_LOCATION();
+	public static String[] COLOR=Constants.getCOLOR();
 	
 	
 	/**
@@ -20,11 +21,23 @@ public abstract class ImDrawRect
 	 * @return BufferedImage
 	 * @throws IOException
 	 */
-	public static BufferedImage drawAndGetImage(String imName,String[] bbox) throws IOException 
+	public static BufferedImage drawAndGetImage(String imName,String[] bbox)
 	{
-		System.out.println("Sono in drawAndGetImage");
+		//System.out.println("Sono in drawAndGetImage");
 		String imPath=IMAGE_LOCATION+imName;
-		BufferedImage img = ImageIO.read(new File (imPath)); //image loading
+		
+		//image loading
+		BufferedImage img=null;
+		try 
+		{
+			img = ImageIO.read(new File (imPath));
+		} 
+		catch (IllegalArgumentException | IOException e1) 
+		{
+			System.out.println("ERROR: Can't load image: "+imPath);
+			e1.printStackTrace();
+			return null;
+		} 
 		
 		//Trovo 
 		int i;
@@ -73,7 +86,7 @@ public abstract class ImDrawRect
 	 */
 	private static int[] FindBBox(String bbox) 
 	{
-		System.out.println("Sono in FindBBox");
+		//System.out.println("Sono in FindBBox");
 		
 		bbox=bbox.substring(1, bbox.length()-1); //tolgo le [ ]
 		String[] stringA=bbox.split(", ");
@@ -82,14 +95,14 @@ public abstract class ImDrawRect
 		int i;
 		for (i=0;i<stringA.length;i++)
 		{
-			System.out.println("l'elemento "+i+" è "+stringA[i]);
+			//System.out.println("l'elemento "+i+" è "+stringA[i]);
 			try
 			{
 				stringInt[i]=Integer.parseInt(stringA[i]);
 			}
 			catch (NumberFormatException e)
 			{
-				System.out.println("WARNING: "+ stringA[i]+" ISN'T AN INTEGER, WE WILL TRY TO PARSE LIKE A FLOAT");
+				//System.out.println("WARNING: "+ stringA[i]+" ISN'T AN INTEGER, WE WILL TRY TO PARSE LIKE A FLOAT");
 				
 				float num=Float.parseFloat(stringA[i]);
 				

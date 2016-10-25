@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 
+import entities.Constants;
+
 public abstract class GoldStandardControl 
 {
-	private static String GOLD_FILE="D:\\workspace_eclipse\\JSPLuceneExample\\gold_standard.txt";
-	private static String GOLD_FILE_TEMP="D:\\workspace_eclipse\\JSPLuceneExample\\gold_standard_temp.txt";
+	private static String GOLD_FILE=Constants.getGOLD_FILE();
+	private static String GOLD_FILE_TEMP=Constants.getGOLD_FILE_TEMP();
 	
 	
 	/**
@@ -23,7 +25,7 @@ public abstract class GoldStandardControl
 	 */
 	private static LinkedList<String> parseLn(String file) throws IOException
     {
-		System.out.println("Sono in parseLn del file: "+file);
+		//System.out.println("Sono in parseLn del file: "+file);
 		LinkedList<String> queries=new LinkedList<>();
         
         BufferedReader br = new BufferedReader(new FileReader(file));
@@ -59,7 +61,7 @@ public abstract class GoldStandardControl
 		} 
 		catch (IOException e) 
 		{
-			System.out.println("Parser fallito sul file: "+GOLD_FILE);
+			System.out.println("ERRORE: Parser fallito sul file: "+GOLD_FILE);
 			e.printStackTrace();
 			return null;
 		}
@@ -68,12 +70,12 @@ public abstract class GoldStandardControl
 		int i;
 		for (i=0;i<gold_standard_ln.size(); i++)
 		{
-			System.out.println("Esamino la riga: "+gold_standard_ln.get(i));
+			//System.out.println("Esamino la riga: "+gold_standard_ln.get(i));
 			String[] elements=gold_standard_ln.get(i).split("#");
 			String[] gold_standard=new String[elements.length-1];
 			if (query.equals(elements[0])) //la query è il primo elemento della riga
 			{
-				System.out.println("è il gold standard cercato");
+				System.out.println(gold_standard_ln.get(i)+" è il gold standard cercato");
 				//Riempio l'array
 				int j;
 				for (j=0;j<elements.length-1;j++)
@@ -85,6 +87,36 @@ public abstract class GoldStandardControl
 		}
 		System.out.println("Non esiste un gold standard per questa query: "+query);
 		return null;
+	}
+	
+	/**
+	 * Questo metodo restituisce tutte le query per le quali esiste un gold standard
+	 * @return LinkedList<String>
+	 */
+	public static LinkedList<String> findAllGoldStandards()
+	{
+		LinkedList<String> gold_standard_ln = null;
+		LinkedList<String> gs_list=new LinkedList<>();
+		
+		try {
+			gold_standard_ln=parseLn(GOLD_FILE);
+		} 
+		catch (IOException e) 
+		{
+			System.out.println("ERRORE: Parser fallito sul file: "+GOLD_FILE);
+			e.printStackTrace();
+			return null;
+		}
+		
+		//Esamino le singole query
+		int i;
+		for (i=0;i<gold_standard_ln.size(); i++)
+		{
+			//System.out.println("Esamino la riga: "+gold_standard_ln.get(i));
+			String[] elements=gold_standard_ln.get(i).split("#");
+			gs_list.add(elements[0]); //la query è il primo elemento della riga
+		}
+		return gs_list;
 	}
 
 	/**
@@ -130,7 +162,7 @@ public abstract class GoldStandardControl
 	 */
 	public static void saveNewGoldStandard(String newsg) throws IOException
 	{
-		System.out.println("Sono in saveNewGoldStandard della query: "+newsg);
+		//System.out.println("Sono in saveNewGoldStandard della query: "+newsg);
  
         BufferedWriter bw = new BufferedWriter(new FileWriter(GOLD_FILE, true));
         PrintWriter pw= new PrintWriter(bw);
@@ -145,7 +177,7 @@ public abstract class GoldStandardControl
 	 */
 	public static void updateGoldStandard(String newgs) throws IOException
 	{
-		System.out.println("Sono in updateGoldStandard della query: "+newgs);
+		//System.out.println("Sono in updateGoldStandard della query: "+newgs);
 
 		File tempFile = new File(GOLD_FILE_TEMP);
 		File goldFile = new File(GOLD_FILE);
@@ -161,11 +193,11 @@ public abstract class GoldStandardControl
         while ((currentline=br.readLine()) !=null)
         {
         	String[] elements=currentline.split("#");
-        	System.out.println("esamino la query: "+elements[0]);
+        	//System.out.println("esamino la query: "+elements[0]);
         	
         	if (elements[0].equals(query)) //E' quella da aggiornare
         	{
-        		System.out.println("E' quella da aggiornare");
+        		//System.out.println("E' quella da aggiornare");
         		pw.println(newgs);
         	}
         	else
@@ -178,7 +210,12 @@ public abstract class GoldStandardControl
         bw.close();
         boolean del=goldFile.delete();
         boolean ren=tempFile.renameTo(goldFile);
-        System.out.println("Il risultato del delete è "+del+" ed il risultato del rename è: "+ren);
+        
+        if (!del || !ren)
+        {
+        	System.out.println("ERROR: failure in update gold standard: delete return "+del+" rename return: "+ren);
+        }
+        //System.out.println("Il risultato del delete è "+del+" ed il risultato del rename è: "+ren);
 	}
 	
 	/**
@@ -190,7 +227,7 @@ public abstract class GoldStandardControl
 	 */
 	public static String[] refineGoldStandard(LinkedList<String> relevant, LinkedList<String> irrelevant, String[] oldgs)
 	{
-		System.out.println("Sono in refineGoldStandard");
+		//System.out.println("Sono in refineGoldStandard");
 		LinkedList<String> new_gs_list=new LinkedList<String>();
 		
 		//Scorro la vecchia lista ed elimino gli irrilevanti, se ci sono doppioni con i nuovi rilevanti li tolgo
@@ -243,7 +280,7 @@ public abstract class GoldStandardControl
 
 	public static void editGoldStandard(boolean[] gs_value, String query) throws IOException 
 	{
-		System.out.println("Sono in editGoldStandard della query: "+query);
+		//System.out.println("Sono in editGoldStandard della query: "+query);
 		String[] old_gs=findGoldStandard(query);
 		LinkedList<String> new_gs= new LinkedList<>();
 		String gs_string=query;

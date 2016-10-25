@@ -24,7 +24,6 @@ public class ExportGSServlet extends HttpServlet {
      */
     public ExportGSServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
@@ -36,7 +35,7 @@ public class ExportGSServlet extends HttpServlet {
 		HttpSession session = request.getSession();
 		String query=(String) session.getAttribute("query");
 		String[] resImId= (String[]) session.getAttribute("resultImID");
-		System.out.print("PRINT DI CONTROLLO: Sono in ExportGSServlet in doGet e la query è "+query+" \n");
+		//System.out.print("PRINT DI CONTROLLO: Sono in ExportGSServlet in doGet e la query è "+query+" \n");
 		
 		LinkedList<String> relevant=new LinkedList<>();
 		LinkedList<String> irrelevant=new LinkedList<>();	
@@ -46,11 +45,10 @@ public class ExportGSServlet extends HttpServlet {
 			int i;
 			for (i=0;i<resImId.length;i++)
 			{
-				int num=i+1;
 				String cb="cb"+i;
 				
 				String value=(String) request.getParameter(cb);
-				System.out.println("PRINT DI CONTROLLO: L'immagine in posizione "+num+" ha come valore "+value);
+				//System.out.println("PRINT DI CONTROLLO: L'immagine in posizione "+num+" ha come valore "+value);
 				
 				if (value.equals("relevant"))
 				{
@@ -70,7 +68,7 @@ public class ExportGSServlet extends HttpServlet {
 		}
 		else
 		{
-			System.out.print("PRINT DI CONTROLLO: Non sono riuscito ad iniziare il salvataggio, la query è: "+query);
+			System.out.print("ERROR: Can't save, query: "+query);
 		}
 		
 		// Refresh della pagina

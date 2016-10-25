@@ -13,7 +13,7 @@ public abstract class StatisticControl
 	 */
 	public static float[] findStatistc(String[] result, String query)
 	{
-		System.out.println("Sono in findStatistc con query: "+query);
+		//System.out.println("Sono in findStatistc con query: "+query);
 		String [] gold_standard=GoldStandardControl.findGoldStandard(query);
 		
 		if (gold_standard==null)
@@ -24,18 +24,79 @@ public abstract class StatisticControl
 		//precision, recall e Average Precision globale 
 		float [] pre_rec=findPrecisionRecallAvPre(result, gold_standard);
 		
+		int size=result.length;
 		//Nei primi 10 risultati
-		String[] resul_ten=Arrays.copyOfRange(result, 0, 10);
+		String[] resul_ten;
+		if (size>10)
+		{
+			resul_ten=Arrays.copyOfRange(result, 0, 10);
+		}
+		else
+		{
+			resul_ten=Arrays.copyOfRange(result, 0, size);
+		}
+		
 		float [] pre_rec_ten=findPrecisionRecallAvPre(resul_ten, gold_standard);
 		
 		//F1= (2 x precision x recall) / (precision + recall)
 		float f1=(2*pre_rec[0]*pre_rec[1]) / (pre_rec[0]+pre_rec[1]);
 		float f1_ten=(2*pre_rec_ten[0]*pre_rec_ten[1]) / (pre_rec_ten[0]+pre_rec_ten[1]);
 		
-		System.out.println("Precision: "+pre_rec[0]+" Recall: "+pre_rec[1]+" Average Precision: "+pre_rec[2]+" F1: "+f1);
-		System.out.println("In top 10, Precision "+pre_rec_ten[0]+" Recall: "+pre_rec_ten[1]+" Average Precision: "+pre_rec_ten[2]+" F1: "+f1_ten);
 		
-		float[] statistic={pre_rec[0], pre_rec[1],pre_rec_ten[0],pre_rec_ten[1],pre_rec[2],pre_rec_ten[2],f1,f1_ten};		
+		//Nei primi 5 risultati 
+		String[] resul_five;
+		if (size>5)
+		{
+			resul_five=Arrays.copyOfRange(result, 0, 5);
+		}
+		else
+		{
+			resul_five=Arrays.copyOfRange(result, 0, size);
+		}
+		float [] pre_rec_five=findPrecisionRecallAvPre(resul_five, gold_standard);
+		float f1_five=(2*pre_rec_five[0]*pre_rec_five[1]) / (pre_rec_five[0]+pre_rec_five[1]);
+		
+		//Nei primi 20 risultati 
+		String[] resul_20;
+		if (size>20)
+		{
+			resul_20=Arrays.copyOfRange(result, 0, 20);
+		}
+		else
+		{
+			resul_20=Arrays.copyOfRange(result, 0, size);
+		}
+		float [] pre_rec_20=findPrecisionRecallAvPre(resul_20, gold_standard);
+		float f1_20=(2*pre_rec_20[0]*pre_rec_20[1]) / (pre_rec_20[0]+pre_rec_20[1]);
+		
+		//Nei primi 30 risultati 
+		String[] resul_30;
+		if (size>30)
+		{
+			resul_30=Arrays.copyOfRange(result, 0, 30);
+		}
+		else
+		{
+			resul_30=Arrays.copyOfRange(result, 0, size);
+		}
+		float [] pre_rec_30=findPrecisionRecallAvPre(resul_30, gold_standard);
+		float f1_30=(2*pre_rec_30[0]*pre_rec_30[1]) / (pre_rec_30[0]+pre_rec_30[1]);
+				
+		//Nei primi 40 risultati 
+		String[] resul_40;
+		if (size>40)
+		{
+			resul_40=Arrays.copyOfRange(result, 0, 40);
+		}
+		else
+		{
+			resul_40=Arrays.copyOfRange(result, 0, size);
+		}
+		float [] pre_rec_40=findPrecisionRecallAvPre(resul_40, gold_standard);
+		float f1_40=(2*pre_rec_40[0]*pre_rec_40[1]) / (pre_rec_40[0]+pre_rec_40[1]);
+		
+		
+		float[] statistic={pre_rec[0], pre_rec[1],pre_rec_ten[0],pre_rec_ten[1],pre_rec[2],pre_rec_ten[2],f1,f1_ten, pre_rec_five[0], pre_rec_five[1],pre_rec_five[2],f1_five,pre_rec_20[0], pre_rec_20[1],pre_rec_20[2],f1_20,pre_rec_30[0], pre_rec_30[1],pre_rec_30[2],f1_30,pre_rec_40[0], pre_rec_40[1],pre_rec_40[2],f1_40};		
 		return statistic;
 	}
 	
@@ -47,6 +108,7 @@ public abstract class StatisticControl
 	 */
 	private static float[] findPrecisionRecallAvPre(String[] result, String [] gold_standard)
 	{
+		System.out.println("PRINT DI CONTROLLO: Sono in findPrecisionRecallAvPre con result size= "+result.length);
 		//Scorro tutta la lista dei risultati
 		int relevant_retrieved=0;
 		float average_precision=0;
@@ -58,6 +120,11 @@ public abstract class StatisticControl
 			int j;
 			for (j=0;j<gold_standard.length;j++)
 			{
+				if (element==null)
+				{
+					System.out.println("PRINT DI CONTROLLO: Sono al passo "+(i+1)+" con l'elemento: "+element);
+				}
+				
 				if (element.equals(gold_standard[j])) 
 				{
 					relevant_retrieved++;
@@ -70,7 +137,7 @@ public abstract class StatisticControl
 				}
 			}		
 		}
-		System.out.println("PRINT DI CONTROLLO: relevant_retrieved finale: "+relevant_retrieved);
+		//System.out.println("PRINT DI CONTROLLO: relevant_retrieved finale: "+relevant_retrieved);
 		
 		//average_precision=Sum (precision)/total number of relevant doc
 		average_precision=average_precision/gold_standard.length;

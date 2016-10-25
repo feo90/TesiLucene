@@ -25,8 +25,10 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import entities.Category;
+import entities.Constants;
 import entities.ImageCategory;
 
 public class LuceneController 
@@ -64,12 +66,13 @@ public class LuceneController
         
         if (!DirectoryReader.indexExists(index)) //Lo riempio solo se non esiste già
         {
-        	 System.out.println("L'indice non esiste, verrà quindi ricreato");
+        	 //System.out.println("L'indice non esiste, verrà quindi ricreato");
         	 FillIndex(index, configCapt); //Riempio l'indice
+        	 //System.out.println("Creo le thumbnails, risultato: "+ImResizer.resizeAllImages());
         }
         else
         {
-        	System.out.println("Carico solo le categorie dal file");
+        	//System.out.println("Carico solo le categorie dal file");
         	loadCategory();
         }
         
@@ -88,7 +91,7 @@ public class LuceneController
 	 */
 	private void FillIndex(Directory index, IndexWriterConfig config) throws IOException 
 	{
-		System.out.println("Sono in FillIndexCaptions");
+		//System.out.println("Sono in FillIndexCaptions");
 		IndexWriter w = new IndexWriter(index, config);
 	    File[] files = new File(dataDirectoryPath).listFiles(); //get all files in the data directory
 	      
@@ -97,15 +100,15 @@ public class LuceneController
 	    	//Scorro tutti i file e recupero i dati 
 	    	for (File file : files) 
 	    	{
-	    		System.out.println("Esamino il file: "+file.getName());
+	    		//System.out.println("Esamino il file: "+file.getName());
 	    		if(!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead() && fileFilterCaptions(file))
 	    		{
-	    			System.out.println("Il file: "+file.getName()+" è un file di caption");
+	    			//System.out.println("Il file: "+file.getName()+" è un file di caption");
 	    			ParseJSONCaptions(file.getPath()); //estrapolo i dati dal file
 	    		}    
 	    		if(!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead() && fileFilterInstances(file))
 	    		{
-	    			System.out.println("Il file: "+file.getName()+" è un file di instances");
+	    			//System.out.println("Il file: "+file.getName()+" è un file di instances");
 	    			ParseJSONInstances(file.getPath()); //estrapolo i dati dal file
 	    		}   
 	    	}
@@ -152,7 +155,7 @@ public class LuceneController
 	 */
 	private void ParseJSONCaptions(String file) throws IOException 
 	{
-		System.out.println("Sono in ParseJSONCaptions");
+		//System.out.println("Sono in ParseJSONCaptions");
 		
 		String fileContent=readFile(file);
 		String[] filepart=fileContent.split("], "); //Separo le categorie presenti nel file
@@ -161,7 +164,7 @@ public class LuceneController
 		for (i=0;i<filepart.length;i++) //LAVORO SULLE CATEGORIE
 		{
 			String categoria=filepart[i];
-			System.out.println("La categoria "+i+" inizia con "+categoria.substring(0, 30));
+			//System.out.println("La categoria "+i+" inizia con "+categoria.substring(0, 30));
 			if (categoria.startsWith("\"annotations\""))
 			{
 				//System.out.println("Ho trovato la categoria annotations");
@@ -206,18 +209,18 @@ public class LuceneController
 							System.out.println("ERRORE in ParseJSONCaptions: Elemento: "+dati[k]+" non riconosciuto, sono in posizione "+k);
 							if (k==6 && dati.length==7) //Il caso più comune è quando il separatore compare nella caption stessa
 							{
-								System.out.println("E' l'ultimo elemento ed è dopo la caption, presuppongo quindi che faccia parte della stessa");
+								//System.out.println("E' l'ultimo elemento ed è dopo la caption, presuppongo quindi che faccia parte della stessa");
 								String newCapt=Captions.getLast()+", \""+dati[k];
 								Captions.removeLast();
 								Captions.add(newCapt);
-								System.out.println("La caption diventa quindi: "+Captions.getLast());
+								//System.out.println("La caption diventa quindi: "+Captions.getLast());
 							}
 						}
 					}	
 				}
 			}
 		}
-		System.out.println("Ho finito ParseJSONCaptions");
+		//System.out.println("Ho finito ParseJSONCaptions");
 	}
 	
 	/**
@@ -227,7 +230,7 @@ public class LuceneController
 	 */
 	private void ParseJSONInstances(String file) throws IOException 
 	{
-		System.out.println("Sono in ParseJSONInstances");
+		//System.out.println("Sono in ParseJSONInstances");
 		
 		String fileContent=readFile(file);
 		String[] filepart=fileContent.split("\"annotations\": \\["); //Separo le info sulle immagini, da scartare, dal resto del file
@@ -245,7 +248,7 @@ public class LuceneController
 			String category=categories[j].substring(1, categories[j].length()-1); //elimino i " ad inizio e fine
 			String[] elements=category.split("\": \"|\", \"|, \"n|d\": ");//splitto su <": "> E <", "> E <, "n> E <d": > in questo modo name diventa ame ed id solo i ma separo i singoli elementi
 			
-			System.out.println("Ho trovato la categoria con id: "+elements[3]+" nome: "+ elements[5]+" e supercategoria: "+elements[1]);
+			//System.out.println("Ho trovato la categoria con id: "+elements[3]+" nome: "+ elements[5]+" e supercategoria: "+elements[1]);
 			Category c=new Category(elements[3],elements[5],elements[1]);
 			categoryList.add(c);
 		}
@@ -256,7 +259,7 @@ public class LuceneController
 		 fatte così:
 		 "segmentation": [[239.97, 260.24, 222.04, 270.49, 199.84, 253.41, 213.5, 227.79, 259.62, 200.46, 274.13, 202.17, 277.55, 210.71, 249.37, 253.41, 237.41, 264.51, 242.54, 261.95, 228.87, 271.34]], "area": 2765.1486500000005, "iscrowd": 0, "image_id": 558840, "bbox": [199.84, 200.46, 77.71, 70.88], "category_id": 58, "id": 156
 		 */
-		System.out.println("Sono in ParseJSONInstances e sto iniziando a recuperare i dati degli oggetti presenti nelle immagini");
+		//System.out.println("Sono in ParseJSONInstances e sto iniziando a recuperare i dati degli oggetti presenti nelle immagini");
 		
 		//Non avendo ancora immagini categorizzate creo la prima lista
 		LinkedList<ImageCategory> imageCategoryList1= new LinkedList<>();
@@ -269,12 +272,12 @@ public class LuceneController
 			if (i%500==0)
 			{
 				int numb=i/5000;
-				System.out.println("Eseguiti: "+i+" lista attualmente utilizzata: "+numb);
+				//System.out.println("Eseguiti: "+i+" lista attualmente utilizzata: "+numb);
 				
 				//Evito di avere linked list troppo grandi che rallentano l'operazione	
 				if (numb>bigImageCategoryList.size()-1)
 				{
-					System.out.println("Creo una nuova sottolista visto che la precedente contiene già 4999 elementi");
+					//System.out.println("Creo una nuova sottolista visto che la precedente contiene già 4999 elementi");
 					LinkedList<ImageCategory> newImageCategoryList= new LinkedList<>();
 					bigImageCategoryList.add(newImageCategoryList);
 					imageCategoryList= newImageCategoryList;
@@ -341,7 +344,7 @@ public class LuceneController
 			}
 			ic.addCategory(cat, bbox);
 		}
-		System.out.println("Ho finito ParseJSONInstances");
+		//System.out.println("Ho finito ParseJSONInstances");
 	}
 	
 	/**
@@ -383,12 +386,11 @@ public class LuceneController
 
         // use a string field for id because we don't want it tokenized
         doc.add(new StringField("id", id, Field.Store.YES));
-        
-        // use a string field for id because we don't want it tokenized
-        doc.add(new StringField("image_id", image_id, Field.Store.YES));
+        //tokenized
+        doc.add(new TextField("image_id", image_id, Field.Store.YES));
         
         //Recupero i dati salvati in imageCategoryList
-        System.out.println("addDoc: Inizio la ricerca degli oggetti corrispondenti in imageCategoryList");
+        //System.out.println("addDoc: Inizio la ricerca degli oggetti corrispondenti in imageCategoryList");
         int i;
         String bboxString="";
 		String catString="";
@@ -423,11 +425,11 @@ public class LuceneController
                     
                     for (j=0;j<catList.size();j++)
                     {
-                    	catString=catString+catList.get(j).getName()+" ";
+                    	catString=catString+catList.get(j).getName()+" # ";
                     }
                     catString=catString.substring(0, catString.length()-1); //Rimuovo l'ultimo spazio
                          
-                  //tokenized	
+                    //tokenized	
                     doc.add(new TextField("catList", catString, Field.Store.YES));
             		break;
             	}
@@ -443,7 +445,7 @@ public class LuceneController
         }
            
         w.addDocument(doc);
-        System.out.println("Sono in addDoc ed ho aggiunto il documento con id "+id+" image_id "+image_id+" caption "+caption+" bboxList "+bboxString+" catList "+catString);
+        //System.out.println("Sono in addDoc ed ho aggiunto il documento con id "+id+" image_id "+image_id+" caption "+caption+" bboxList "+bboxString+" catList "+catString);
     }
        
     /**
@@ -455,7 +457,7 @@ public class LuceneController
      */
     public String[][] searchCaptions(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchCaptions");
+    	//System.out.println("Sono in searchCaptions");
     	// the "caption" arg specifies the default field to use
         // when no field is explicitly specified in the query.
         Query q = new QueryParser("caption", analyzer).parse(querystr); //Crea una query Lucene
@@ -471,7 +473,7 @@ public class LuceneController
      */
     public String[][] searchCaptionsPlus(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchCaptionsPlus");
+    	//System.out.println("Sono in searchCaptionsPlus");
     	// the "caption" arg specifies the default field to use
         // when no field is explicitly specified in the query.
         Query q = new QueryParser("caption", analyzer).parse(ElaborateUnderCategories(querystr)); //Crea una query Lucene
@@ -486,28 +488,28 @@ public class LuceneController
      */
     private String ElaborateUnderCategories(String oldQuery)
     {
-    	System.out.println("Sono in ElaborateUnderCategories");
+    	//System.out.println("Sono in ElaborateUnderCategories");
     	String elements[]= oldQuery.split(" "); //Separo le singole parole
     	String undercat=" ";
-    	String UNDERCATWEIGHT="^0.5 "; //Peso dato alle sottocategorie di quella cercata 
+    	String UNDERCATWEIGHT=Constants.getUNDERCATWEIGHT(); //Peso dato alle sottocategorie di quella cercata 
     	
     	int i;
     	for (i=0;i<elements.length;i++)
     	{
-    		System.out.println("Esamino questo elemento della query: "+elements[i]);
+    		//System.out.println("Esamino questo elemento della query: "+elements[i]);
     		
     		int j;
     		for (j=0;j<categoryList.size();j++)
     		{
-    			System.out.println("Lo confronto con questa categoria: "+categoryList.get(j).getName()+" che ha come supercategoria "+categoryList.get(j).getSupercategory());
+    			//System.out.println("Lo confronto con questa categoria: "+categoryList.get(j).getName()+" che ha come supercategoria "+categoryList.get(j).getSupercategory());
     			if (elements[i].equals(categoryList.get(j).getSupercategory())) //Se la parola cercata è la supercategoria di una categoria allora la categoria fa parte della ricerca
     			{
     				undercat=undercat+categoryList.get(j).getName()+UNDERCATWEIGHT;
-    				System.out.println("E' una di quelle che cercavo, la stringa diventa quindi: "+undercat);
+    				//System.out.println("E' una di quelle che cercavo, la stringa diventa quindi: "+undercat);
     			}
     		}
     	}
-    	System.out.println("La query è: "+oldQuery+undercat);
+    	//System.out.println("La query è: "+oldQuery+undercat);
     	return oldQuery+undercat;
     }
     
@@ -583,7 +585,7 @@ public class LuceneController
      */
     public String[][] searchCategory(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchCategory");
+    	//System.out.println("Sono in searchCategory");
     	// the "catList" arg specifies the default field to use
         // when no field is explicitly specified in the query.
         Query q = new QueryParser("catList", analyzer).parse(querystr); //Crea una query Lucene
@@ -599,7 +601,7 @@ public class LuceneController
      */
     public String[][] searchCategoryPlus(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchCategoryPlus");
+    	//System.out.println("Sono in searchCategoryPlus");
     	// the "catList" arg specifies the default field to use
         // when no field is explicitly specified in the query.
         Query q = new QueryParser("catList", analyzer).parse(ElaborateUnderCategories(querystr)); //Crea una query Lucene
@@ -615,11 +617,11 @@ public class LuceneController
      */
     public String[][] searchBothCatCap(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchBothCatCap");
+    	//System.out.println("Sono in searchBothCatCap");
     	
     	//Aggiungo il tag per fare la ricerca anche nelle Caption
     	String complexQuerystr="caption:("+querystr+") OR "+querystr;
-    	System.out.println("La query complessa è: "+complexQuerystr);
+    	//System.out.println("La query complessa è: "+complexQuerystr);
     	
     	// the "catList" arg specifies the default field to use
         // when no field is explicitly specified in the query.
@@ -636,12 +638,12 @@ public class LuceneController
      */
     public String[][] searchBothCatCapPlus(String querystr) throws IOException, ParseException
     {
-    	System.out.println("Sono in searchBothCatCapPlus");
+    	//System.out.println("Sono in searchBothCatCapPlus");
     	querystr=ElaborateUnderCategories(querystr); //Aggiorno la query con le sottocategorie
     	
     	//Aggiungo il tag per fare la ricerca anche nelle Caption
     	String complexQuerystr="caption:("+querystr+") OR "+querystr;
-    	System.out.println("La query complessa è: "+complexQuerystr);
+    	//System.out.println("La query complessa è: "+complexQuerystr);
     	
     	// the "catList" arg specifies the default field to use
         // when no field is explicitly specified in the query.
@@ -652,13 +654,13 @@ public class LuceneController
     /**
      * Questo metodo si occupa di eseguire la query richiesta e restituisce i risultati
      * @param q la query
-     * @return
+     * @return result={resultID,resultCaptions,resultImage_ID,resultCategory,resultBBox}
      * @throws IOException
      * @throws ParseException 
      */
     private String[][] searcher(Query q) throws IOException, ParseException
     {
-    	System.out.println("Sono in searcher e la query è: "+q.toString());
+    	//System.out.println("Sono in searcher e la query è: "+q.toString());
     	// 3. search
         int HITSFORPAGE = 100; 
         
@@ -671,13 +673,13 @@ public class LuceneController
         String[] resultCaptions= new String[hits.length];
         String[] resultBBox= new String[hits.length];
         
-        // 4. display results di controllo
-        System.out.println("Found " + hits.length + " hits.");
+        // 4. display results 
+        //System.out.println("Found " + hits.length + " hits.");
         
         for(int i=0;i<hits.length;++i) {
             int docId = hits[i].doc;
             Document d = indexSearcher.doc(docId);
-            System.out.println((i + 1) +") ID: " + d.get("id") + "\t"+" Image_ID: "+d.get("image_id")+"\t"+"Caption: "+ d.get("caption")+"\t"+"Categories: "+d.get("catList")+"\t"+"Bonding Boxes: "+d.get("bboxList"));
+            //System.out.println((i + 1) +") ID: " + d.get("id") + "\t"+" Image_ID: "+d.get("image_id")+"\t"+"Caption: "+ d.get("caption")+"\t"+"Categories: "+d.get("catList")+"\t"+"Bonding Boxes: "+d.get("bboxList"));
             resultID[i]=d.get("id");
             resultCategory[i]=d.get("catList");
             resultCaptions[i]=d.get("caption");
@@ -694,7 +696,7 @@ public class LuceneController
      */
     private void loadCategory() throws IOException
     {
-    	System.out.println("Sono in loadCategory");
+    	//System.out.println("Sono in loadCategory");
     	
     	File[] files = new File(dataDirectoryPath).listFiles(); //get all files in the data directory
 	      
@@ -703,10 +705,10 @@ public class LuceneController
 	    	//Scorro tutti i file e recupero i dati 
 	    	for (File file : files) 
 	    	{
-	    		System.out.println("Esamino il file: "+file.getName());   
+	    		//System.out.println("Esamino il file: "+file.getName());   
 	    		if(!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead() && fileFilterInstances(file))
 	    		{
-	    			System.out.println("Il file: "+file.getName()+" è un file di instances");
+	    			//System.out.println("Il file: "+file.getName()+" è un file di instances");
 	    			
 	    			String fileContent=readFile(file.getPath());  //estrapolo i dati dal file
 	    			
@@ -725,7 +727,7 @@ public class LuceneController
 	    				String category=categories[j].substring(1, categories[j].length()-1); //elimino i " ad inizio e fine
 	    				String[] elements=category.split("\": \"|\", \"|, \"n|d\": ");//splitto su <": "> E <", "> E <, "n> E <d": > in questo modo name diventa ame ed id solo i ma separo i singoli elementi
 	    				
-	    				System.out.println("Ho trovato la categoria con id: "+elements[3]+" nome: "+ elements[5]+" e supercategoria: "+elements[1]);
+	    				//System.out.println("Ho trovato la categoria con id: "+elements[3]+" nome: "+ elements[5]+" e supercategoria: "+elements[1]);
 	    				Category c=new Category(elements[3],elements[5],elements[1]);
 	    				categoryList.add(c);
 	    			}    			

@@ -13,11 +13,13 @@ import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 
+import entities.Constants;
+
 public abstract class ImResizer 
 {
-	private static double RATIO=0.4;
-	private static String TUMB_LOCATION="D:\\workspace_eclipse\\JSPLuceneExample\\WebContent\\images\\thumbnails\\";
-	private static String IMAGE_LOCATION="D:\\workspace_eclipse\\JSPLuceneExample\\WebContent\\images\\val2014\\";
+	private static double RATIO=Constants.getRATIO();
+	private static String TUMB_LOCATION=Constants.getTUMB_LOCATION();
+	private static String IMAGE_LOCATION=Constants.getIMAGE_LOCATION();
 	
 	/**
 	 * Questo metodo si occupa di creare le thumbnail di tutti i file nella directory IMAGE_LOCATION e metterle in TUMB_LOCATION
@@ -26,7 +28,7 @@ public abstract class ImResizer
 	 */
 	public static boolean resizeAllImages() throws IOException
 	{
-		System.out.println("Sono in resizeAllImages");
+		//System.out.println("Sono in resizeAllImages");
 		File folder = new File(IMAGE_LOCATION);
 		File[] listOfFiles = folder.listFiles();
 		
@@ -34,7 +36,7 @@ public abstract class ImResizer
 		{
 		      if (listOfFiles[i].isFile()) 
 		      {
-		        System.out.println("File " + listOfFiles[i].getName());
+		        //System.out.println("File " + listOfFiles[i].getName());
 		        
 		        //Controllo se non esiste già la thumbnail 
 		        File f = new File(TUMB_LOCATION+listOfFiles[i].getName());
@@ -47,12 +49,12 @@ public abstract class ImResizer
 		        }	 
 		        else
 		        {
-		        	System.out.println("Il file: "+IMAGE_LOCATION+listOfFiles[i].getName()+" esiste già");
+		        	//System.out.println("Il file: "+IMAGE_LOCATION+listOfFiles[i].getName()+" esiste già");
 		        }
 		      } 
 		      else if (listOfFiles[i].isDirectory()) 
 		      {
-		        System.out.println("Directory " + listOfFiles[i].getName());
+		        //System.out.println("Directory " + listOfFiles[i].getName());
 		      }
 		}
 		return true;
