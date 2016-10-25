@@ -8,6 +8,7 @@
 <title>Gold Standard Setting</title>
 </head>
 <body>
+<form action="ExportGS"> 
 <%String[][] result = (String[][]) session.getAttribute("result");
 String query=(String) request.getParameter("query");
 session.setAttribute("query", query);
@@ -17,13 +18,7 @@ session.setAttribute("query", query);
 		String[] resultID=result[0];
 		String[] resultImageID=result[2];
 		session.setAttribute("resultImID", resultImageID);
-		%>
-		<form action="ExportGS"> 
-		<!-- Bottone Export Gold Standard -->
-		<p>
-			<input name="Export" type="submit" id="export" value="export">
-		</p>	
-		<%
+		
 		int i;
 		for (i=0;i<resultID.length;i++)
 		{
@@ -49,10 +44,24 @@ session.setAttribute("query", query);
 			 <img src="<%=imURI %>"/>
 			 <!-- Menu a tendina per  la valutazione -->
 	  		<select name="<%=cb %>" >
-   			<option value="relevant" selected="selected">relevant </option>
+	  		<%if (i<20) 
+	  		{%>
+	  		<option value="relevant" selected="selected">relevant </option>
    			<option value="irrelevant">irrelevant  </option>
+	  		<%}
+	  		else 
+	  		{%>
+	  		<option value="relevant" >relevant </option>
+   			<option value="irrelevant" selected="selected">irrelevant  </option>
+	  		<%} %>
   			</select>
 		<% }
+		%>
+		<!-- Bottone Export Gold Standard -->
+		<h2 align="center">
+			<input name="Export" type="submit" id="export" value="export">
+		</h2>	
+		<%
 	} 
 	%>
 	</form>	

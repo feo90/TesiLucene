@@ -39,6 +39,14 @@
 		<input name="showGS" type="submit" id="show" value="Show Gold Standard">
 	</h2>
 	</form>
+	
+	<!-- Bottone per andare alla pagina con tutti GS -->
+	<form action="AllGoldStandards.jsp">
+	<h2 align="center" >
+		<input name="browseGS" type="submit" id="browse" value="Browse Gold Standards">
+	</h2>
+	
+	</form>
 
 <form action="GoldStandard.jsp"> 
 	
@@ -69,8 +77,15 @@
 		
 		//Calcolo delle statistiche
 		String query= (String) session.getAttribute("query");
+		session.setAttribute("query", query);
 		float[] statistic=StatisticControl.findStatistc( resultImageID,  query);
 		%>
+		<form action="RefineServlet"> 
+		<!-- Bottone Refine -->
+		<h2>
+			<input name="refine" type="submit" id="back" value="rerank">
+		</h2>
+		</form>
 		
 		<p><%="Found " + resultID.length + " hits for the query: " %> "<%=query %>"</p>
 		<% if (statistic!=null)
@@ -83,9 +98,34 @@
 			float average_prec_ten= statistic[5]*100;
 			float f1= statistic[6]*100;
 			float f1_ten= statistic[7]*100;
+			
+			float precision_5= statistic[8]*100;
+			float recall_5= statistic[9]*100;
+			float average_prec_5= statistic[10]*100;
+			float f1_5= statistic[11]*100;
+			
+			float precision_20= statistic[12]*100;
+			float recall_20= statistic[13]*100;
+			float average_prec_20= statistic[14]*100;
+			float f1_20= statistic[15]*100;
+			
+			float precision_30= statistic[16]*100;
+			float recall_30= statistic[17]*100;
+			float average_prec_30= statistic[18]*100;
+			float f1_30= statistic[19]*100;
+			
+			float precision_40= statistic[20]*100;
+			float recall_40= statistic[21]*100;
+			float average_prec_40= statistic[22]*100;
+			float f1_40= statistic[23]*100;
+			
 			%>
 		<p>precision: <%=precision %>% , recall: <%=recall %>% , average precision: <%=average_prec %>% , F1: <%=f1 %>%</p>
+		<p>In top 5: precision: <%=precision_5 %>%, recall: <%=recall_5 %>% , average precision: <%=average_prec_5 %>% , F1: <%=f1_5 %>% </p>
 		<p>In top 10: precision: <%=precision_ten %>%, recall: <%=recall_ten %>% , average precision: <%=average_prec_ten %>% , F1: <%=f1_ten %>% </p>
+		<p>In top 20: precision: <%=precision_20 %>%, recall: <%=recall_20 %>% , average precision: <%=average_prec_20 %>% , F1: <%=f1_20 %>% </p>
+		<p>In top 30: precision: <%=precision_30 %>%, recall: <%=recall_30 %>% , average precision: <%=average_prec_30 %>% , F1: <%=f1_30 %>% </p>
+		<p>In top 40: precision: <%=precision_40 %>%, recall: <%=recall_40 %>% , average precision: <%=average_prec_40 %>% , F1: <%=f1_40 %>% </p>		
 		<%}
 		else 
 		{

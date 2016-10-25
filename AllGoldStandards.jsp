@@ -1,22 +1,56 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-    <%@ page import="java.net.URI" %>  
+    <%@ page import="control.GoldStandardControl" %> 
+    <%@ page import="java.util.LinkedList" %> 
+    <%@ page import="java.net.URI" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Gold Standard</title>
+<title>Gold Standards</title>
 </head>
 <body>
-<h2>Query: <%=session.getAttribute("query") %></h2>
-<form action="SingleImageServlet">
- <!-- Segnalo che sto guardando le immagini del GS -->
-<input type="hidden" name="show" value="true">
+<form action="AllGoldStandards.jsp">
+	<h1 align="center" >Image Retrieval on CoCo</h1>
+	<h2 align="center" > Select one of the query to show the gold standard  </h2>
 
-<% String[] gs = (String[]) session.getAttribute("gs"); 
-if (gs!=null)
-{
+	<%
+	LinkedList<String> gs_list=GoldStandardControl.findAllGoldStandards();
+	%>
+	
+	<!-- Menu a tendina -->
+	<h2 align="center" >
+	<select name="query">
+	<%
 	int i;
+	for (i=0;i<gs_list.size();i++)
+	{
+		%>
+		<option value="<%=gs_list.get(i) %>"><%=gs_list.get(i) %></option>
+		<%
+	}
+	%>
+  </select>
+	</h2>
+	
+	<h2 align="center" >
+		<input name="showGS" type="submit" id="show" value="Show Gold Standard">
+	</h2>
+</form>
+
+<%
+String query=request.getParameter("query");
+
+if (query!=null)
+{
+	String[] gs=GoldStandardControl.findGoldStandard(query);
+	session.setAttribute("query", query);
+	session.setAttribute("gs",gs);
+	
+	%>
+	<h2> Query: <%=query %> </h2>
+	<% 
+	
 	for (i=0;i<gs.length;i++)
 	{
 		//numero
@@ -41,49 +75,26 @@ if (gs!=null)
 		<% 
 		String contextPath = request.getContextPath(); 
 		URI imURI = new URI(contextPath+"/images/thumbnails/"+imageName);
-		
-		if (i<20)
-		{
 		%>			
-		 <button type="submit" name="imagebt" value="<%=imageId %>"><img src="<%=imURI %>" ></button>
-		 <!-- Menu a tendina per  la valutazione -->
-	  	<select name="<%=cb %>" >
-   		<option value="relevant" selected="selected">relevant </option>
-   		<option value="irrelevant" >irrelevant  </option>
-  		</select>
-	<%}
-		else //I risultati oltre i 20 sono con maggior probabilità irrilevanti
-		{
-			%>			
-			 <button type="submit" name="imagebt" value="<%=imageId %>"><img src="<%=imURI %>" ></button>
-			 <!-- Menu a tendina per  la valutazione -->
-		  	<select name="<%=cb %>" >
-	   		<option value="relevant" >relevant </option>
-	   		<option value="irrelevant" selected="selected" >irrelevant  </option>
-	  		</select>
-		<%
-		}
+		 <img src="<%=imURI %>" >
+	<%
 	}
 	%>
+	
 	<!-- Bottone Edit Gold Standard -->
+	<form action="ShowGoldStandard.jsp">
 	<p>
 		<input name="edit" type="submit" id="edit" value="edit gold standard">
 	</p>
-	<% 	
-}
-else
-{
-%>
-<h3>THERE ISN'T A GOLD STANDARD FOR THIS QUERY</h3>
-<% 
-}%>
-</form>
+	</form>
+	
+<%} %>
+
 <!-- Bottone Indietro -->
 <form action="Intro.jsp"> 
 	<h2 align="center">
 		<input name="Back" type="submit" id="back" value="back">
 	</h2>
 </form>
-
 </body>
 </html>
