@@ -15,7 +15,9 @@ public abstract class GoldStandardControl
 {
 	private static String GOLD_FILE=Constants.getGOLD_FILE();
 	private static String GOLD_FILE_TEMP=Constants.getGOLD_FILE_TEMP();
+	private static String GOLD_FILE_PART=Constants.getGOLD_FILE_PART();
 	
+
 	
 	/**
 	 * Questo metodo prende in input l'indirizzo di un file e restituisce una linked list che ne contiene le singole righe
@@ -49,19 +51,65 @@ public abstract class GoldStandardControl
 	/**
 	 * Questo metodo recupera, se esiste, il gold standard per la query indicata 
 	 * @param query la query cercata
+	 * @param alsoPart boolean, indica se si vogliono considerare anche i risultati parzialmente rilevanti 
 	 * @return String[] gli id delle immagini nell'ordine del gold standard, null se non esiste
 	 */
-	public static String[] findGoldStandard(String query)
+	public static String[] findGoldStandard(String query, boolean alsoPart)
 	{
-		System.out.println("Sono in findGoldStandard con query: "+query);
+		System.out.println("PRINT DI CONTROLLO: Sono in findGoldStandard con query: "+query+" ed also Part vale: "+alsoPart); //TODO
+		
+		String[] relevant_GS=findSingleGoldStandard(query,true);
+		String [] part_GS=findSingleGoldStandard(query,false);
+		
+		if (alsoPart && part_GS!=null) //Se voglio anche i parziali e questi non sono nulli
+		{	
+			//unisco gli array
+			int doublesize=relevant_GS.length+part_GS.length;
+			int relevantsize=relevant_GS.length;
+			String[] gold=new String[doublesize];
+			int i;
+			for (i=0;i<relevantsize;i++)
+			{
+				gold[i]=relevant_GS[i];
+			}
+			for(i=0;i<part_GS.length;i++)
+			{
+				gold[i+relevantsize]=part_GS[i];
+			}
+			return gold;
+		}
+		else
+		{
+			return relevant_GS;
+		}
+	}
+	
+	
+	/**
+	  * Questo metodo recupera, se esiste, il gold standard per la query indicata 
+	 * @param query la query cercata
+	 * @param relevant indica se si vuole recuperare i rilevanti od i parzialmente rilevanti
+	 * @return String[] gli id delle immagini nell'ordine del gold standard, null se non esiste
+	 */
+	public static String[] findSingleGoldStandard(String query, boolean relevant)
+	{
+		System.out.println("PRINT DI CONTROLLO: Sono in findSingleGoldStandard con query: "+query+" e relevant "+ relevant); //TODO rimuovilo 
 		LinkedList<String> gold_standard_ln = null;
 		
 		try {
-			gold_standard_ln=parseLn(GOLD_FILE);
+			
+			if (relevant)
+			{
+				gold_standard_ln=parseLn(GOLD_FILE);
+			}
+			else
+			{
+				gold_standard_ln=parseLn(GOLD_FILE_PART);
+			}
 		} 
 		catch (IOException e) 
 		{
-			System.out.println("ERRORE: Parser fallito sul file: "+GOLD_FILE);
+			System.out.println("ERROR: can't parse file: "+GOLD_FILE);
 			e.printStackTrace();
 			return null;
 		}
@@ -75,7 +123,7 @@ public abstract class GoldStandardControl
 			String[] gold_standard=new String[elements.length-1];
 			if (query.equals(elements[0])) //la query è il primo elemento della riga
 			{
-				System.out.println(gold_standard_ln.get(i)+" è il gold standard cercato");
+				//System.out.println(gold_standard_ln.get(i)+" è il gold standard cercato"); 
 				//Riempio l'array
 				int j;
 				for (j=0;j<elements.length-1;j++)
@@ -85,9 +133,10 @@ public abstract class GoldStandardControl
 				return gold_standard; 
 			}
 		}
-		System.out.println("Non esiste un gold standard per questa query: "+query);
+		System.out.println("WARNING: doesn't exist a gold standard for the query: "+query); 
 		return null;
-	}
+}
+	
 	
 	/**
 	 * Questo metodo restituisce tutte le query per le quali esiste un gold standard
@@ -103,7 +152,7 @@ public abstract class GoldStandardControl
 		} 
 		catch (IOException e) 
 		{
-			System.out.println("ERRORE: Parser fallito sul file: "+GOLD_FILE);
+			System.out.println("ERROR: failed to parse file: "+GOLD_FILE);
 			e.printStackTrace();
 			return null;
 		}
@@ -124,14 +173,15 @@ public abstract class GoldStandardControl
 	 * @param LinkedList<String> relevant la lista degli elementi rilevanti
 	 * @param LinkedList<String> relevant la lista degli elementi irrilevanti
 	 * @param String query la query considerata
+	 * @param boolean find_relevant indica se voglio aggiornare i rilevanti od i parzialmente rilevanti
 	 * @throws IOException
 	 */
-	public static void saveGoldStandard(LinkedList<String> relevant, LinkedList<String> irrelevant, String query) throws IOException
+	public static void saveSingleGoldStandard(LinkedList<String> relevant, LinkedList<String> irrelevant, String query, boolean find_relevant) throws IOException
 	{
-		System.out.println("Sono in saveGoldStandard della query: "+query);
+		System.out.println("PRINT DI CONTROLLO: Sono in saveSingleGoldStandard della query: "+query+" e find_relevant è "+find_relevant); //TODO rimuovilo
 		 
 		String gs_string=query;
-		String[] old_gs=findGoldStandard(query);
+		String[] old_gs=findSingleGoldStandard(query,find_relevant);
 		
 		if (old_gs==null)
 		{
@@ -140,7 +190,7 @@ public abstract class GoldStandardControl
 			{
 				gs_string=gs_string+"#"+relevant.get(i);
 			}			
-			saveNewGoldStandard(gs_string);
+			saveNewGoldStandard(gs_string, find_relevant);
 		}
 		else
 		{
@@ -150,21 +200,31 @@ public abstract class GoldStandardControl
 			{
 				gs_string=gs_string+"#"+gold_standard[i];
 			}			
-			updateGoldStandard(gs_string);
+			updateSingleGoldStandard(gs_string, find_relevant);
 		}
 	}
 	
 	/**
 	 * Questo metodo permette di inserire un gold standard non ancora presente sul file
 	 * @param String Il nuovo gold standard nel formato query#im1#im2....
+	 * @param boolean save_relevant se il gold standard è dei rilevanti o dei parzialmente rilevanti
 	 * @throws IOException 
 	 * 
 	 */
-	public static void saveNewGoldStandard(String newsg) throws IOException
+	public static void saveNewGoldStandard(String newsg, boolean save_relevant) throws IOException
 	{
 		//System.out.println("Sono in saveNewGoldStandard della query: "+newsg);
- 
-        BufferedWriter bw = new BufferedWriter(new FileWriter(GOLD_FILE, true));
+		String file="";
+		if (save_relevant)
+		{
+			file=GOLD_FILE;
+		}
+		else
+		{
+			file=GOLD_FILE_PART;
+		}
+		
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
         PrintWriter pw= new PrintWriter(bw);
         pw.println(newsg);
         pw.close();
@@ -173,14 +233,25 @@ public abstract class GoldStandardControl
 	/**
 	 * Questo metodo si occupa di aggiornare un gold standard già presente sul file
 	 * @param newgs String Il nuovo gold standard nel formato query#im1#im2....
+	 * @param save_relevant boolean se il gold standard è rilevante o parzialmente rilevante
 	 * @throws IOException
 	 */
-	public static void updateGoldStandard(String newgs) throws IOException
+	public static void updateSingleGoldStandard(String newgs, boolean save_relevant) throws IOException
 	{
 		//System.out.println("Sono in updateGoldStandard della query: "+newgs);
 
+		String file="";
+		if (save_relevant)
+		{
+			file=GOLD_FILE;
+		}
+		else
+		{
+			file=GOLD_FILE_PART;
+		}
+		
 		File tempFile = new File(GOLD_FILE_TEMP);
-		File goldFile = new File(GOLD_FILE);
+		File goldFile = new File(file);
         
 		BufferedReader br = new BufferedReader(new FileReader(goldFile));
 		BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
@@ -262,6 +333,23 @@ public abstract class GoldStandardControl
 			}					
 		}
 		
+		//Scorro la vecchia lista per eliminare eventuali doppioni presenti dovuti a modifiche manuali
+		//System.out.println("PRINT DI CONTROLLO: Esamino i rilevanti"); 
+		for (i=0;i<new_gs_list.size();i++)
+		{
+			int j;
+			//System.out.println("PRINT DI CONTROLLO: Esamino l'elemento: "+new_gs_list.get(i)); 	
+			for (j=i+1;j<new_gs_list.size();j++)
+			{
+				if (new_gs_list.get(i).equals(new_gs_list.get(j)))
+				{
+					//System.out.println("PRINT DI CONTROLLO: al posto "+j+" l'elemento: "+new_gs_list.get(j)+" è uguale e lo rimuovo"); 
+					new_gs_list.remove(j);
+					j--;
+				}
+			}
+		}
+		
 		//creo l'array con i vecchi ed i nuovi rilevanti
 		String [] newgs= new String[new_gs_list.size()+relevant.size()];
 		
@@ -278,26 +366,156 @@ public abstract class GoldStandardControl
 		return newgs;
 	}
 
-	public static void editGoldStandard(boolean[] gs_value, String query) throws IOException 
+	/**
+	 * Questo metodo si occupa di aggiornare il gs 
+	 * @param gs_value il nuovo valore dei vecchi rilevanti
+	 * @param gs_value_part il nuovo valore dei vecchi parzialmente rilevanti
+	 * @param query la query in formato String
+	 */
+	public static void editGoldStandard(String[] gs_value_rel, String[] gs_value_part, String query) 
 	{
-		//System.out.println("Sono in editGoldStandard della query: "+query);
-		String[] old_gs=findGoldStandard(query);
-		LinkedList<String> new_gs= new LinkedList<>();
-		String gs_string=query;
+		String[] old_gs_rel=findSingleGoldStandard(query,true);
+		String[] old_gs_part=findSingleGoldStandard(query,false);
+		LinkedList<String> relevant=new LinkedList<>();
+		LinkedList<String> partially=new LinkedList<>();
+		LinkedList<String> irrelevant=new LinkedList<>();
 		
 		int i;
-		for (i=0;i<old_gs.length;i++)
+		String[] old_gs=null;
+		String[] gs_value=null;
+		
+		//Elaboro i vecchi rilevanti
+		if (old_gs_rel!=null)
 		{
-			if (gs_value[i])
+			old_gs=old_gs_rel;
+			gs_value=gs_value_rel;
+			for (i=0;i<old_gs.length;i++)
 			{
-				new_gs.add(old_gs[i]);
+				if (gs_value[i].equals("relevant"))
+				{
+					relevant.add(old_gs[i]);
+				}
+				else if (gs_value[i].equals("irrelevant"))
+				{
+					irrelevant.add(old_gs[i]);
+				}
+				else if (gs_value[i].equals("partially"))
+				{
+					partially.add(old_gs[i]);
+				}
+				else
+				{
+					System.out.println("ERROR: for element: "+old_gs[i]+" value is: "+gs_value[i]);
+				}
 			}
 		}
-		for (i=0;i<new_gs.size();i++)
+		
+		//Elaboro i vecchi parzialmente rilevanti
+		if (old_gs_part!=null)
 		{
-			gs_string=gs_string+"#"+new_gs.get(i);
-		}			
-		updateGoldStandard(gs_string);
+			old_gs=old_gs_part;
+			gs_value=gs_value_part;		
+			for (i=0;i<old_gs.length;i++)
+			{
+				if (gs_value[i].equals("relevant"))
+				{
+					relevant.add(old_gs[i]);
+				}
+				else if (gs_value[i].equals("irrelevant"))
+				{
+					irrelevant.add(old_gs[i]);
+				}
+				else if (gs_value[i].equals("partially"))
+				{
+					partially.add(old_gs[i]);
+				}
+				else
+				{
+					System.out.println("ERROR: for element: "+old_gs[i]+" value is: "+gs_value[i]);
+				}
+			}
+		}
+		
+		//Elimino eventuali doppioni dagli irrilevanti
+		for (i=0;i<irrelevant.size();i++)
+		{
+			String element=irrelevant.get(i);
+			int j;
+			boolean removed=false;
+			for (j=0;j<partially.size();j++)
+			{
+				if (element.equals(partially.get(j)))
+				{
+					irrelevant.remove(i);
+					i--;
+					removed=true;
+					break;
+				}
+			}
+			if (!removed) //Se l'ho già rimosso non serve che controllo sui rilevanti
+			{
+				for (j=0;j<relevant.size();j++)
+				{
+					if (element.equals(partially.get(j)))
+					{
+						irrelevant.remove(i);
+						i--;
+						break;
+					}
+				}
+			}
+		}
+		//Elimino eventuali doppioni dai parzialmente rilevanti
+		for (i=0;i<partially.size();i++)
+		{
+			String element=partially.get(i);
+			int j;
+			for (j=0;j<relevant.size();j++)
+			{
+				if (element.equals(relevant.get(j)))
+				{
+					partially.remove(i);
+					i--;
+					break;
+				}
+			}	
+		}
+		
+		//Elimino eventuali ripetizioni dalle liste da salvare
+		for (i=0;i<relevant.size();i++)
+		{
+			int j;
+			for (j=i+1;j<relevant.size();j++)
+			{
+				if (relevant.get(i).equals(relevant.get(j)))
+				{
+					relevant.remove(j);
+					j--;
+				}
+			}
+		}
+		for (i=0;i<partially.size();i++)
+		{
+			int j;
+			for (j=i+1;j<partially.size();j++)
+			{
+				if (partially.get(i).equals(partially.get(j)))
+				{
+					partially.remove(j);
+					j--;
+				}
+			}
+		}
+		
+		//Salvo di dati
+		try 
+		{
+			saveSingleGoldStandard(relevant,irrelevant,query,true);
+			saveSingleGoldStandard(partially,irrelevant,query,false);
+		} catch (IOException e) 
+		{
+			System.out.println("ERROR: failed to save the gold standard for the query: "+query);
+			e.printStackTrace();
+		}
 	}
-
 }

@@ -1,12 +1,10 @@
-package lucene;
+package persistent;
 
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 
 import org.apache.lucene.document.Document;
@@ -26,24 +24,24 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import control.ImResizer;
+import control.WordMatrixControl;
+
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import entities.Category;
 import entities.Constants;
 import entities.ImageCategory;
 
-public class LuceneController 
+public class LuceneController extends LuceneCommon
 {
-
-	private IndexSearcher indexSearcher;
-	private StandardAnalyzer analyzer;
-	private Path indexDirectoryPath=Paths.get("D:\\workspace_eclipse\\JSPLuceneExample\\Index");
-	private String dataDirectoryPath="D:\\workspace_eclipse\\JSPLuceneExample\\Data";
+	private String dataDirectoryPath=Constants.getDATADIRECTORYPATH();
 	
 	private LinkedList<String> image_id_caption = new LinkedList<>();
 	private LinkedList<String> id_caption = new LinkedList<>();
 	private LinkedList<String> Captions = new LinkedList<>();
 	private LinkedList<Category> categoryList= new LinkedList<>();
 	private LinkedList<LinkedList<ImageCategory>> bigImageCategoryList= new LinkedList<>();
+	private String[][] word_matrix;
 	
 	/**
 	 * Costruttore con index
@@ -66,13 +64,14 @@ public class LuceneController
         
         if (!DirectoryReader.indexExists(index)) //Lo riempio solo se non esiste già
         {
-        	 //System.out.println("L'indice non esiste, verrà quindi ricreato");
+        	 System.out.println("L'indice non esiste, verrà quindi ricreato");
         	 FillIndex(index, configCapt); //Riempio l'indice
+        	 ImResizer.resizeAllImages();
         	 //System.out.println("Creo le thumbnails, risultato: "+ImResizer.resizeAllImages());
         }
         else
         {
-        	//System.out.println("Carico solo le categorie dal file");
+        	System.out.println("Carico solo le categorie dal file");
         	loadCategory();
         }
         
@@ -112,12 +111,14 @@ public class LuceneController
 	    			ParseJSONInstances(file.getPath()); //estrapolo i dati dal file
 	    		}   
 	    	}
-	    
+	    	//Carico la words matrix
+	    	this.word_matrix=WordMatrixControl.matrixMaker();
+	    	
 	    	int i;
 	    	for (i=0;i<id_caption.size();i++)
 		   {
 	    		addDoc(w,image_id_caption.get(i),id_caption.get(i),Captions.get(i)); //aggiungo i dati all'indice
-		   }   
+		   }
 	    }
 	    else
 	    {
@@ -155,7 +156,7 @@ public class LuceneController
 	 */
 	private void ParseJSONCaptions(String file) throws IOException 
 	{
-		//System.out.println("Sono in ParseJSONCaptions");
+		System.out.println("Sono in ParseJSONCaptions");
 		
 		String fileContent=readFile(file);
 		String[] filepart=fileContent.split("], "); //Separo le categorie presenti nel file
@@ -188,19 +189,19 @@ public class LuceneController
 					{
 						if (dati[k].equals("\"image_id\""))//Il dato vero e proprio è nel successivo
 						{
-							//System.out.println("Ho trovato l'image_id: "+dati[k+1]);
+							System.out.println("Ho trovato l'image_id: "+dati[k+1]);
 							image_id_caption.add(dati[k+1]);
 							k++;
 						}
 						else if (dati[k].equals("id\""))
 						{
-							//System.out.println("Ho trovato l'id: "+dati[k+1]);
+							System.out.println("Ho trovato l'id: "+dati[k+1]);
 							id_caption.add(dati[k+1]);
 							k++;
 						}
 						else if (dati[k].equals("caption\""))
 						{
-							//System.out.println("Ho trovato la caption: "+dati[k+1]);
+							System.out.println("Ho trovato la caption: "+dati[k+1]);
 							Captions.add(dati[k+1]);
 							k++;
 						}
@@ -209,18 +210,18 @@ public class LuceneController
 							System.out.println("ERRORE in ParseJSONCaptions: Elemento: "+dati[k]+" non riconosciuto, sono in posizione "+k);
 							if (k==6 && dati.length==7) //Il caso più comune è quando il separatore compare nella caption stessa
 							{
-								//System.out.println("E' l'ultimo elemento ed è dopo la caption, presuppongo quindi che faccia parte della stessa");
+								System.out.println("E' l'ultimo elemento ed è dopo la caption, presuppongo quindi che faccia parte della stessa");
 								String newCapt=Captions.getLast()+", \""+dati[k];
 								Captions.removeLast();
 								Captions.add(newCapt);
-								//System.out.println("La caption diventa quindi: "+Captions.getLast());
+								System.out.println("La caption diventa quindi: "+Captions.getLast());
 							}
 						}
 					}	
 				}
 			}
 		}
-		//System.out.println("Ho finito ParseJSONCaptions");
+		System.out.println("Ho finito ParseJSONCaptions");
 	}
 	
 	/**
@@ -386,6 +387,14 @@ public class LuceneController
 
         // use a string field for id because we don't want it tokenized
         doc.add(new StringField("id", id, Field.Store.YES));
+        
+        //Calcolo il vettore e lo salvo
+        int[] vector=WordMatrixControl.calculatePhraseVector(caption, word_matrix);
+        String vector_string=WordMatrixControl.createStringVector(vector);
+        
+        // use a string field for id because we don't want it tokenized
+        doc.add(new StringField("vector", vector_string, Field.Store.YES));
+        
         //tokenized
         doc.add(new TextField("image_id", image_id, Field.Store.YES));
         
@@ -511,69 +520,6 @@ public class LuceneController
     	}
     	//System.out.println("La query è: "+oldQuery+undercat);
     	return oldQuery+undercat;
-    }
-    
-    /**
-     * Questo metodo si occupa di filtrare i risultati e rimuovere i doppioni lasciando solo quello nella posizione più alta
-     * @param resultOld
-     * @return String[][] result
-     * @throws IOException
-     * @throws ParseException
-     */
-    private String[][] searchFilter(String[][] resultOld) throws IOException, ParseException
-    {
-    	//Recupero i singli array
-    	String[] resultID=resultOld[0];
-		String[] resultSentence=resultOld[1];
-		String[] resultImageID=resultOld[2];
-    	
-		//preparo delle liste per eseguire la rimozione dei doppioni
-    	LinkedList<String> resultIDList=new LinkedList<>();
-    	LinkedList<String> resultImageIDList=new LinkedList<>();
-    	LinkedList<String> resultSentenceList=new LinkedList<>();
-    	
-    	int i;
-    	for (i=0;i<resultID.length;i++) //Ciclo sui risultati ed elimino i doppioni
-    	{
-    		String imageid=resultImageID[i];
-    		boolean present=false;
-    		
-    		int j;
-    		for (j=0;j<resultImageIDList.size();j++)
-    		{
-    			if (imageid.equals(resultImageIDList.get(j))) //Doppione!
-    			{
-    				present=true;
-    				//Inserisco anche la seconda caption nel risultato
-    				String oldSentence=resultSentenceList.get(j);
-    				String newSentence=oldSentence+"\n"+resultSentence[i];
-    				resultSentenceList.remove(j);
-    				resultSentenceList.add(j, newSentence);
-    				break;
-    			}
-    		}
-    		if (!present) //Se non è un doppione lo aggiungo
-    		{
-    			resultImageIDList.add(imageid);
-    			resultIDList.add(resultID[i]);
-    			resultSentenceList.add(resultSentence[i]);
-    		}
-    	}
-    	
-    	//Ricreo gli array 
-    	String[] newresultID= new String[resultIDList.size()];
-    	String[] newresultSentence= new String[resultIDList.size()];
-    	String[] newresultImageID= new String[resultIDList.size()];
-    	
-    	for (i=0;i<resultIDList.size();i++)
-    	{
-    		newresultID[i]= resultIDList.get(i);
-    		newresultSentence[i]= resultSentenceList.get(i);
-    		newresultImageID[i]= resultImageIDList.get(i);
-    	}
-
-    	  String[][] result={newresultID,newresultSentence,newresultImageID,resultOld[3],resultOld[4]};
-    	  return result;
     }
     
     /**

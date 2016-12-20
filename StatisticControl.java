@@ -9,12 +9,13 @@ public abstract class StatisticControl
 	 * Questo metodo si occupa di calcolare le statistiche importanti per la ricerca 
 	 * @param result l'id delle immagini recuperate in formato String[]
 	 * @param query in formato String
+	 * @param alsoPart boolean, indica se si vogliono considerare anche i risultati parzialmente rilevanti 
 	 * @return float[] {precision , recall , precision@10, recall@10, average precision, average precison@10, F1, F1@10}
 	 */
-	public static float[] findStatistc(String[] result, String query)
+	public static float[] findStatistc(String[] result, String query, boolean alsoPart)
 	{
 		//System.out.println("Sono in findStatistc con query: "+query);
-		String [] gold_standard=GoldStandardControl.findGoldStandard(query);
+		String [] gold_standard=GoldStandardControl.findGoldStandard(query, alsoPart);
 		
 		if (gold_standard==null)
 		{
@@ -122,7 +123,7 @@ public abstract class StatisticControl
 			{
 				if (element==null)
 				{
-					System.out.println("PRINT DI CONTROLLO: Sono al passo "+(i+1)+" con l'elemento: "+element);
+					//System.out.println("PRINT DI CONTROLLO: Sono al passo "+(i+1)+" con l'elemento: "+element);
 				}
 				
 				if (element.equals(gold_standard[j])) 
@@ -132,7 +133,7 @@ public abstract class StatisticControl
 					float step= (float) i+1;
 					float precision=rrf/step;
 					average_precision=average_precision+precision;
-					System.out.println("PRINT DI CONTROLLO: Sono al passo "+(i+1)+" l'elemento: "+element+" è rilevante, relevant_retrieved attuale è "+relevant_retrieved+" e la precision attuale è "+precision);
+					//System.out.println("PRINT DI CONTROLLO: Sono al passo "+(i+1)+" l'elemento: "+element+" è rilevante, relevant_retrieved attuale è "+relevant_retrieved+" e la precision attuale è "+precision);
 					break;
 				}
 			}		
@@ -154,6 +155,4 @@ public abstract class StatisticControl
 		float[] pre_rec_ap={precision,recall,average_precision};
 		return pre_rec_ap;
 	}
-
-	
 }
